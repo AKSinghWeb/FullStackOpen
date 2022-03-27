@@ -68,16 +68,24 @@ const App = () => {
       number: newNumber,
     };
 
-    personService.create(personObject).then((newPerson) => {
-      setPersons(persons.concat(newPerson));
-      setFiltered(persons.concat(newPerson));
-      setUserMessage(`${newPerson.name} added successfully`);
-      setTimeout(() => {
-        setUserMessage(null);
-      }, 5000);
-      setNewName("");
-      setNewNumber("");
-    });
+    personService
+      .create(personObject)
+      .then((newPerson) => {
+        setPersons(persons.concat(newPerson));
+        setFiltered(persons.concat(newPerson));
+        setUserMessage(`${newPerson.name} added successfully`);
+        setTimeout(() => {
+          setUserMessage(null);
+        }, 5000);
+        setNewName("");
+        setNewNumber("");
+      })
+      .catch((error) => {
+        setErrorMessage(error.response.data.error);
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 5000);
+      });
   };
 
   const handleFilter = (event) => {

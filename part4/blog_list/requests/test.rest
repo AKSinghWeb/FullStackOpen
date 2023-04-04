@@ -2,8 +2,21 @@ POST http://localhost:3003/api/blogs/ HTTP/1.1
 content-type: application/json
 
 {
-    "title": "String",
-    "author": "String",
-    "url": "String",
-    "likes": 5
+    "author": "Robert Martin",
+    "url": "http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html",
+    "likes": 10
+}
+
+###
+DELETE http://localhost:3003/api/blogs/642c316c640e3e1e1d0913a6 HTTP/1.1
+
+###
+PUT http://localhost:3003/api/blogs/642c17571a13caa90c71ae7a HTTP/1.1
+content-type: application/json
+
+{
+    "title": "Type wars",
+    "author": "Robert Martin",
+    "url": "http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.html",
+    "likes": 10
 }

@@ -1,10 +1,13 @@
 const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
 const supertest = require('supertest')
 const app = require('../app')
 
 const api = supertest(app)
 
 const Blog = require('../models/blog')
+const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 const initialBlogs = [
   {
@@ -27,13 +30,31 @@ const initialBlogs = [
   },
 ]
 
+const rootUser = {
+  username: 'root',
+  name: 'superuser',
+  password: '1234',
+}
+
 beforeEach(async () => {
+  await User.deleteMany({})
   await Blog.deleteMany({})
-  let blogObject = new Blog(initialBlogs[0])
+
+  const saltRounds = 10
+  const passwordHash = await bcrypt.hash(rootUser.password, saltRounds)
+
+  let userObject = new User({
+    username: rootUser.username,
+    name: rootUser.name,
+    passwordHash: passwordHash,
+  })
+  await userObject.save()
+
+  let blogObject = new Blog({ ...initialBlogs[0], user: userObject._id })
   await blogObject.save()
-  blogObject = new Blog(initialBlogs[1])
+  blogObject = new Blog({ ...initialBlogs[1], user: userObject._id })
   await blogObject.save()
-  blogObject = new Blog(initialBlogs[2])
+  blogObject = new Blog({ ...initialBlogs[2], user: userObject._id })
   await blogObject.save()
 }, 100000)
 
@@ -64,8 +85,17 @@ test('new blog is created', async () => {
     likes: 2,
   }
 
+  const user = await User.findOne({ username: rootUser.username })
+  const userForToken = {
+    username: user.username,
+    id: user._id,
+  }
+
+  const token = jwt.sign(userForToken, process.env.SECRET)
+
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
@@ -81,8 +111,17 @@ test('like property default to 0 when missing', async () => {
     url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html',
   }
 
+  const user = await User.findOne({ username: rootUser.username })
+  const userForToken = {
+    username: user.username,
+    id: user._id,
+  }
+
+  const token = jwt.sign(userForToken, process.env.SECRET)
+
   const response = await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
@@ -107,7 +146,18 @@ test('a blog can be deleted', async () => {
   const blogsAtStart = await api.get('/api/blogs')
   const blogToDelete = blogsAtStart.body[0]
 
-  await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204)
+  const user = await User.findOne({ username: rootUser.username })
+  const userForToken = {
+    username: user.username,
+    id: user._id,
+  }
+
+  const token = jwt.sign(userForToken, process.env.SECRET)
+
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .set('Authorization', `Bearer ${token}`)
+    .expect(204)
 
   const blogsAtEnd = (await api.get('/api/blogs')).body
   expect(blogsAtEnd).toHaveLength(initialBlogs.length - 1)
@@ -116,11 +166,23 @@ test('a blog can be deleted', async () => {
 test("a blog's likes can be updated", async () => {
   const blogsAtStart = await api.get('/api/blogs')
   const blogToUpdate = { ...blogsAtStart.body[0], likes: 4 }
-
   await api.put(`/api/blogs/${blogToUpdate.id}`).send(blogToUpdate).expect(200)
 
   const blogsAtEnd = (await api.get('/api/blogs')).body
   expect(blogsAtEnd[0].likes).toBe(4)
+})
+
+test('an invalid user is not created', async () => {
+  const invalidUser = {
+    username: 'ro',
+    name: 'superuser',
+    password: '14',
+  }
+
+  await api.post('/api/users').send(invalidUser).expect(400)
+
+  const response = await api.get('/api/users')
+  expect(response.body).toHaveLength(1)
 })
 
 afterAll(async () => {

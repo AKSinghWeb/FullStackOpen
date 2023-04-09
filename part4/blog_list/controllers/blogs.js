@@ -50,6 +50,13 @@ blogsRouter.delete('/:id', async (request, response) => {
 })
 
 blogsRouter.put('/:id', async (request, response) => {
+
+  const decodedUser = request.user
+
+  if (!decodedUser.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+
   const updatedBlog = await Blog.findByIdAndUpdate(
     request.params.id,
     { likes: request.body.likes },

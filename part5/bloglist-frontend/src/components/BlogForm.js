@@ -30,7 +30,7 @@ const BlogForm = (props) => {
   }
 
   return (
-    <>
+    <div className="formDiv">
       <h2>create new</h2>
       <form onSubmit={handleBlogCreation}>
         <div>
@@ -39,6 +39,8 @@ const BlogForm = (props) => {
             type="text"
             value={title}
             name="Title"
+            id='title'
+            placeholder='write title here'
             onChange={handleTitleChange}
           />
         </div>
@@ -48,6 +50,8 @@ const BlogForm = (props) => {
             type="text"
             value={author}
             name="Author"
+            id='author'
+            placeholder='write author here'
             onChange={handleAuthorChange}
           />
         </div>
@@ -57,12 +61,14 @@ const BlogForm = (props) => {
             type="text"
             value={url}
             name="URL"
+            id='url'
+            placeholder='write url here'
             onChange={handleUrlChange}
           />
         </div>
-        <button type="submit">create</button>
+        <button id='create' type="submit">create</button>
       </form>
-    </>
+    </div>
   )
 }
 

@@ -11,6 +11,19 @@ const Blog = ({ blog, user, updateLikes, deleteBlog }) => {
     marginBottom: 5,
   }
 
+  const remove = () => {
+    if (blog.user.username === user.username) {
+      return (
+        <>
+          <br />
+          <button id="remove" onClick={handleDelete}>
+            Remove
+          </button>
+        </>
+      )
+    }
+  }
+
   const toggleVisibility = () => {
     setVisible(!visible)
   }
@@ -27,23 +40,24 @@ const Blog = ({ blog, user, updateLikes, deleteBlog }) => {
 
   if (visible) {
     return (
-      <div style={blogStyle}>
+      <div style={blogStyle} className="blog">
         {blog.title} {blog.author}{' '}
         <button onClick={toggleVisibility}>Hide</button>
         <br />
         {blog.url} <br />
         likes: {blog.likes} <button onClick={handleLikeChange}>like</button>
         <br />
-        {user.name}
-        <br />
-        <button onClick={handleDelete}>Remove</button>
+        {blog.user.name}
+        {remove()}
       </div>
     )
   }
   return (
-    <div style={blogStyle}>
+    <div style={blogStyle} className="blog">
       {blog.title} {blog.author}{' '}
-      <button onClick={toggleVisibility}>View</button>
+      <button id="view" onClick={toggleVisibility}>
+        View
+      </button>
     </div>
   )
 }
